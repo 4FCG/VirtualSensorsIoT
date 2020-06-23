@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Casus_B2D4_Sensors.Models;
 
 namespace Casus_B2D4_Sensors
 {
@@ -14,7 +15,8 @@ namespace Casus_B2D4_Sensors
         /// <value>
         /// Sets the interval in milliseconds for the data loop
         /// </value>
-        private int Interval { get; set; }
+        public int Interval { get; set; }
+
         private CancellationTokenSource StopSource { get; set; }
 
         public VirtualSensor(int interval)
