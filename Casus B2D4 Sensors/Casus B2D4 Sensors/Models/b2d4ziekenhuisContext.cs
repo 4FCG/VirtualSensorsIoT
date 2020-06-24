@@ -16,8 +16,6 @@ namespace Casus_B2D4_Sensors.Models
         {
         }
 
-        public virtual DbSet<Inname> Inname { get; set; }
-        public virtual DbSet<Medicijn> Medicijn { get; set; }
         public virtual DbSet<Patient> Patient { get; set; }
         public virtual DbSet<Sensor> Sensor { get; set; }
         public virtual DbSet<SensorMeting> SensorMeting { get; set; }
@@ -33,57 +31,6 @@ namespace Casus_B2D4_Sensors.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Inname>(entity =>
-            {
-                entity.ToTable("inname");
-
-                entity.Property(e => e.InnameId).HasColumnName("inname_id");
-
-                entity.Property(e => e.Ingenomen)
-                    .HasColumnName("ingenomen")
-                    .HasDefaultValueSql("((0))");
-
-                entity.Property(e => e.InnameTimestamp)
-                    .HasColumnName("inname_timestamp")
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.MedicijnId).HasColumnName("medicijn_id");
-
-                entity.HasOne(d => d.Medicijn)
-                    .WithMany(p => p.Inname)
-                    .HasForeignKey(d => d.MedicijnId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_inname_medicijn");
-            });
-
-            modelBuilder.Entity<Medicijn>(entity =>
-            {
-                entity.ToTable("medicijn");
-
-                entity.Property(e => e.MedicijnId).HasColumnName("medicijn_id");
-
-                entity.Property(e => e.DagTotaalInname).HasColumnName("dag_totaal_inname");
-
-                entity.Property(e => e.InnameInterval).HasColumnName("inname_interval");
-
-                entity.Property(e => e.Naam)
-                    .IsRequired()
-                    .HasColumnName("naam")
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.PatientId).HasColumnName("patient_id");
-
-                entity.Property(e => e.StarttijdInname).HasColumnName("starttijd_inname");
-
-                entity.HasOne(d => d.Patient)
-                    .WithMany(p => p.Medicijn)
-                    .HasForeignKey(d => d.PatientId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_medicijn_patient");
-            });
-
             modelBuilder.Entity<Patient>(entity =>
             {
                 entity.ToTable("patient");

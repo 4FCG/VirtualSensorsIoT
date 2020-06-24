@@ -10,18 +10,67 @@ namespace Casus_B2D4_Sensors
     public abstract class VirtualSensor
     {
         /// <summary>
-        /// Interval property.
+        /// Sensor property.
         /// </summary>
         /// <value>
-        /// Sets the interval in milliseconds for the data loop
+        /// The database sensor this virtual sensor is bound to
         /// </value>
-        public int Interval { get; set; }
+        public Sensor Sensor { get; private set; }
 
         private CancellationTokenSource StopSource { get; set; }
 
-        public VirtualSensor(int interval)
+        //Random number assigned to sensor to create different readings from other sensors
+        public readonly int randomFactor;
+
+        /// <summary>
+        /// Running property.
+        /// </summary>
+        /// <value>
+        /// Tracks if the sensor is running.
+        /// </value>
+        public bool Running { get; private set; }
+
+        public VirtualSensor(Sensor sensor)
         {
-            Interval = interval;
+            Sensor = sensor;
+            Running = false;
+
+            Random rnd = new Random();
+            randomFactor = rnd.Next(1, 101);
+
+            if ((bool)sensor.Aan)
+            {
+                Start();
+            }
+        }
+
+        public void UpdateSensor(Sensor sensor)
+        {
+            //Check if any relevant settings changed
+            if (Sensor.Interval != sensor.Interval || Sensor.Aan != sensor.Aan)
+            {
+                Sensor = sensor;
+                //Turn on/off based on database
+                if (Running)
+                {
+                    if ((bool)sensor.Aan)
+                    {
+                        //Restart with new changes
+                        Start();
+                    }
+                    else
+                    {
+                        Stop();
+                    }
+                }
+                else
+                {
+                    if ((bool)sensor.Aan)
+                    {
+                        Start();
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -32,12 +81,12 @@ namespace Casus_B2D4_Sensors
             while (!StopSource.IsCancellationRequested)
             {
                 //Generate value and add it to the database
-                GenerateRandomValue();
+                AddReading(GenerateRandomValue());
 
                 //Cancel delay to stop task on request
                 try
                 {
-                    await Task.Delay(Interval, StopSource.Token);
+                    await Task.Delay(Sensor.Interval, StopSource.Token);
                 }
                 catch (TaskCanceledException)
                 {
@@ -61,6 +110,8 @@ namespace Casus_B2D4_Sensors
             //Set new CancellationSource to stop process later and run a new data generator
             StopSource = new CancellationTokenSource();
             Task.Run(GenerateData, StopSource.Token);
+
+            Running = true;
         }
 
         /// <summary>
@@ -78,11 +129,39 @@ namespace Casus_B2D4_Sensors
                 Console.WriteLine("An attempt was made to stop a sensor that was not running.");
             }
 
+            Running = false;
         }
 
         /// <summary>
-        /// Creates a random value for the sensor and adds it to the database.
+        /// Adds reading to database.
         /// </summary>
-        public abstract void GenerateRandomValue();
+        private void AddReading(double? value)
+        {
+            using (b2d4ziekenhuisContext context = new b2d4ziekenhuisContext())
+            {
+                //Check if sensor has not been deleted
+                if (context.Sensor.Find(this.Sensor.SensorId) == null)
+                {
+                    //Sensor with this ID no longer exists, stop sensor
+                    // TODO: Delete sensor in this case
+                    Stop();
+                }
+                else if (value != null)
+                {
+                    //Sensor still exists, add data
+                    context.SensorMeting.Add(new SensorMeting
+                    {
+                        SensorId = this.Sensor.SensorId,
+                        MetingWaarde = (double)value
+                    });
+                    context.SaveChanges();
+                }
+            }
+        } 
+
+        /// <summary>
+        /// Creates a random value for the sensor.
+        /// </summary>
+        public abstract double? GenerateRandomValue();
     }
 }

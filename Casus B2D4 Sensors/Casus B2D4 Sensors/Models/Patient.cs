@@ -7,7 +7,6 @@ namespace Casus_B2D4_Sensors.Models
     {
         public Patient()
         {
-            Medicijn = new HashSet<Medicijn>();
             Sensor = new HashSet<Sensor>();
         }
 
@@ -18,7 +17,6 @@ namespace Casus_B2D4_Sensors.Models
         public string FotoUrl { get; set; }
         public bool? GeslotenKamer { get; set; }
 
-        public virtual ICollection<Medicijn> Medicijn { get; set; }
         public virtual ICollection<Sensor> Sensor { get; set; }
     }
 }

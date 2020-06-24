@@ -9,32 +9,29 @@ namespace Casus_B2D4_Sensors.Sensoren
 {
     public class Stappenteller : VirtualSensor
     {
-        public Sensor Sensor { get; private set; }
-
-        public Stappenteller (int interval)
-            :base(interval)
+        public Stappenteller (Sensor sensor)
+            :base(sensor)
         {
-            
         }
 
-        override public void GenerateRandomValue()
+        override public double? GenerateRandomValue()
         {
             Random rnd = new Random();
-            double[] wandelsnelheden = {4/3.6, 5/3.6, 6/3.6};
-            double wandelsnelheid = wandelsnelheden[rnd.Next(wandelsnelheden.Length)];
-            //Afstand in meter
-            double gelopenAfstand = wandelsnelheid * (base.Interval / 1000);
-
-            using (b2d4ziekenhuisContext context = new b2d4ziekenhuisContext())
+            double gelopenAfstand;
+            //75% chance to have walked
+            if (rnd.Next(4) == 3)
             {
-                context.SensorMeting.Add(new SensorMeting
-                {
-                    Sensor = this.Sensor,
-                    MetingWaarde = gelopenAfstand
-                });
-
-
+                double[] wandelsnelheden = { 4 / 3.6, 5 / 3.6, 6 / 3.6 };
+                double wandelsnelheid = wandelsnelheden[rnd.Next(wandelsnelheden.Length)];
+                //Distance in meter * random factor
+                gelopenAfstand = wandelsnelheid * (this.Sensor.Interval / 1000) * (rnd.Next(1,11)/10);
             }
+            else
+            {
+                gelopenAfstand = 0;
+            }
+
+            return gelopenAfstand;
         }
     }
 }
