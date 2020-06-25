@@ -14,24 +14,28 @@ namespace Casus_B2D4_Sensors.Sensoren
         {
         }
 
-        override public double? GenerateRandomValue()
+        override public SensorMeting GenerateRandomReading()
         {
             Random rnd = new Random();
             double gelopenAfstand;
-            //75% chance to have walked
-            if (rnd.Next(4) == 3)
+            //50% chance to have walked, modified by random value assigned to sensor
+            if (rnd.Next(100) * this.randomFactor < 50)
             {
                 double[] wandelsnelheden = { 4 / 3.6, 5 / 3.6, 6 / 3.6 };
                 double wandelsnelheid = wandelsnelheden[rnd.Next(wandelsnelheden.Length)];
                 //Distance in meter * random factor
-                gelopenAfstand = wandelsnelheid * (this.Sensor.Interval / 1000) * (rnd.Next(1,11)/10);
+                gelopenAfstand = wandelsnelheid * (this.Sensor.Interval / 1000) * this.randomFactor;
             }
             else
             {
                 gelopenAfstand = 0;
             }
 
-            return gelopenAfstand;
+            return new SensorMeting()
+            {
+                SensorId = this.Sensor.SensorId,
+                MetingWaarde = gelopenAfstand
+            };
         }
     }
 }

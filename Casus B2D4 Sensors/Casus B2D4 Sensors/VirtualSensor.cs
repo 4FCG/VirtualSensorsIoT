@@ -20,7 +20,7 @@ namespace Casus_B2D4_Sensors
         private CancellationTokenSource StopSource { get; set; }
 
         //Random number assigned to sensor to create different readings from other sensors
-        public readonly int randomFactor;
+        public readonly double randomFactor;
 
         /// <summary>
         /// Running property.
@@ -30,13 +30,19 @@ namespace Casus_B2D4_Sensors
         /// </value>
         public bool Running { get; private set; }
 
+        /// <summary>
+        /// Amount of readings done.
+        /// </summary>
+        public int Readings { get; private set; }
+
         public VirtualSensor(Sensor sensor)
         {
             Sensor = sensor;
             Running = false;
+            Readings = 0;
 
             Random rnd = new Random();
-            randomFactor = rnd.Next(1, 101);
+            randomFactor = rnd.NextDouble();
 
             if ((bool)sensor.Aan)
             {
@@ -44,6 +50,10 @@ namespace Casus_B2D4_Sensors
             }
         }
 
+        /// <summary>
+        /// Updates the sensor with new sensor data
+        /// </summary>
+        /// <param name="sensor">The new sensor data</param>
         public void UpdateSensor(Sensor sensor)
         {
             //Check if any relevant settings changed
@@ -81,7 +91,7 @@ namespace Casus_B2D4_Sensors
             while (!StopSource.IsCancellationRequested)
             {
                 //Generate value and add it to the database
-                AddReading(GenerateRandomValue());
+                AddReading(GenerateRandomReading());
 
                 //Cancel delay to stop task on request
                 try
@@ -135,7 +145,7 @@ namespace Casus_B2D4_Sensors
         /// <summary>
         /// Adds reading to database.
         /// </summary>
-        private void AddReading(double? value)
+        private void AddReading(SensorMeting meting)
         {
             using (b2d4ziekenhuisContext context = new b2d4ziekenhuisContext())
             {
@@ -146,15 +156,13 @@ namespace Casus_B2D4_Sensors
                     // TODO: Delete sensor in this case
                     Stop();
                 }
-                else if (value != null)
+                else if (meting != null)
                 {
                     //Sensor still exists, add data
-                    context.SensorMeting.Add(new SensorMeting
-                    {
-                        SensorId = this.Sensor.SensorId,
-                        MetingWaarde = (double)value
-                    });
+                    context.SensorMeting.Add(meting);
                     context.SaveChanges();
+
+                    Readings++;
                 }
             }
         } 
@@ -162,6 +170,6 @@ namespace Casus_B2D4_Sensors
         /// <summary>
         /// Creates a random value for the sensor.
         /// </summary>
-        public abstract double? GenerateRandomValue();
+        public abstract SensorMeting GenerateRandomReading();
     }
 }

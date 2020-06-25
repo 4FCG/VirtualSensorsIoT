@@ -52,11 +52,15 @@ namespace Casus_B2D4_Sensors
             }
         }
 
-        private async void StatusInterface()
+        private void StatusInterface()
         {
             Console.Clear();
             Console.WriteLine($"Aantal sensoren: {ActiveSensors.Count()}");
-            Console.WriteLine($"Active sensors: {ActiveSensors.Where(virtualSensor => virtualSensor.Running).Count()}");
+            Console.WriteLine($"Active sensoren: {ActiveSensors.Where(virtualSensor => virtualSensor.Running).Count()}");
+
+            int readingTotal = 0;
+            ActiveSensors.ForEach(sensor => readingTotal += sensor.Readings);
+            Console.WriteLine($"Aantal metingen: {readingTotal}");
         }
 
         private async void DataRefresh()
@@ -78,16 +82,17 @@ namespace Casus_B2D4_Sensors
                         {
                             ActiveSensors.Add(new Hartslagmeter(sensor));
                         }
+                        else if (sensor.SensorType == 3)
+                        {
+                            ActiveSensors.Add(new Temperatuurmeter(sensor));
+                        }
                     }
                     else
                     {
                         virtualSensor.UpdateSensor(sensor);
                     }
-
-
                 });
             }
         }
-
     }
 }

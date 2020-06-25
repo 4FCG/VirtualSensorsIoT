@@ -22,25 +22,47 @@ namespace Casus_B2D4_Sensors.Sensoren
         {
         }
 
-        override public double? GenerateRandomValue()
+        override public SensorMeting GenerateRandomReading()
         {
-            // TODO: Alarm versie
             int leeftijd;
             using (b2d4ziekenhuisContext context = new b2d4ziekenhuisContext())
             {
                 leeftijd = context.Patient.Find(this.Sensor.PatientId).Leeftijd;
             }
 
+            //Get healthy heart rate range for patient age
             Tuple<int, int> range = hartslagen.Find(hartslag => leeftijd > hartslag["age"].Item1 && leeftijd <= hartslag["age"].Item2)["range"];
             Random rnd = new Random();
-            double hartslag = range.Item1;
-            //Random number in range weighted to middle
-            for (int i = 0; i < 4; i++)
+
+            //5% chance to be alarming value
+            if (rnd.Next(0, 100) > 5)
             {
-                hartslag += rnd.NextDouble() * ((range.Item2 - range.Item1) / 4);
+                //normal value
+                double hartslag = range.Item1;
+                //Random number in range weighted to middle
+                for (int i = 0; i < 4; i++)
+                {
+                    hartslag += rnd.NextDouble() * ((range.Item2 - range.Item1) / 4);
+                }
+
+                return new SensorMeting()
+                {
+                    SensorId = this.Sensor.SensorId,
+                    MetingWaarde = hartslag
+                };
             }
-            Console.WriteLine(hartslag);
-            return hartslag;
+            else
+            {
+                //Alarm reading
+                double hartslag = range.Item2 + 100 * this.randomFactor;
+                return new SensorMeting()
+                {
+                    SensorId = this.Sensor.SensorId,
+                    MetingWaarde = hartslag,
+                    Alarm = true
+                };
+            }
+            
         }
     }
 }
