@@ -86,6 +86,10 @@ namespace Casus_B2D4_Sensors
                         {
                             ActiveSensors.Add(new Temperatuurmeter(sensor));
                         }
+                        else if (sensor.SensorType == 4)
+                        {
+                            ActiveSensors.Add(new DeurAlarm(sensor));
+                        }
                     }
                     else
                     {
