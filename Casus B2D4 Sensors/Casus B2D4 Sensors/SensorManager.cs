@@ -90,6 +90,10 @@ namespace Casus_B2D4_Sensors
                         {
                             ActiveSensors.Add(new DeurAlarm(sensor));
                         }
+                        else if (sensor.SensorType == 5)
+                        {
+                            ActiveSensors.Add(new MedicijnDispenser(sensor));
+                        }
                     }
                     else
                     {
